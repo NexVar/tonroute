@@ -1,0 +1,8 @@
+[mcp_servers.ton]
+command = "npx"
+args = ["--no-install", "mcp"]
+env_vars = ["MNEMONIC", "PRIVATE_KEY", "NETWORK", "TONCENTER_API_KEY", "WALLET_VERSION"]
+startup_timeout_sec = 20
+
+[mcp_servers.ton.env]
+TON_CONFIG_PATH = "/home/batuhan4/github/tonroute/.codex/ton/config.json"

@@ -26,3 +26,7 @@ pnpm-debug.log*
 
 # Local OMX runtime state
 .omx/
+
+# Project-local TON MCP wallet state
+.codex/ton/*
+!.codex/ton/.gitkeep
