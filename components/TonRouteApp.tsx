@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useIsConnectionRestored, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { useIsConnectionRestored, useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { CHAIN } from '@tonconnect/sdk';
 import type { PortfolioAnalysis, StrategyGoal, StrategyRecommendation } from '@/lib/types';
 import {
   ApiClientError,
@@ -47,6 +48,7 @@ function toRequestError(error: unknown): RequestError {
 export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
   const restored = useIsConnectionRestored();
   const tonConnectAddress = useTonAddress();
+  const tonWallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
 
   const [demoWallet, setDemoWallet] = useState<DevWalletInfo | null>(null);
@@ -80,6 +82,16 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
     const timeout = window.setTimeout(() => setRestoreTimedOut(true), 2500);
     return () => window.clearTimeout(timeout);
   }, [restored]);
+
+  useEffect(() => {
+    if (tonWallet) return;
+
+    try {
+      tonConnectUI.setConnectionNetwork(CHAIN.TESTNET);
+    } catch {
+      // TonConnect only allows changing the desired network while disconnected.
+    }
+  }, [tonConnectUI, tonWallet]);
 
   const portfolioAbort = useRef<AbortController | null>(null);
   const recommendationAbort = useRef<AbortController | null>(null);
@@ -223,6 +235,9 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
           if (walletMode === 'demo') {
             await executeStakeWithDemoWallet(step.amountTon);
           } else {
+            if (tonWallet?.account.chain !== CHAIN.TESTNET) {
+              throw new Error('TonRoute execution is testnet-only right now. Reconnect your wallet on TON testnet, then try again.');
+            }
             const tx = await prepareStakeTransaction(activeAddress, step.amountTon);
             await tonConnectUI.sendTransaction(tx);
           }
@@ -246,7 +261,7 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
     } finally {
       setRunning(false);
     }
-  }, [activeAddress, plan, tonConnectUI, walletMode, loadPortfolio]);
+  }, [activeAddress, plan, tonConnectUI, walletMode, loadPortfolio, tonWallet]);
 
   const handleResetExecution = useCallback(() => {
     setPlan(null);

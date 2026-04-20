@@ -33,6 +33,7 @@ const strategyTable: Record<StrategyGoal, { label: string; stakeTargetPercent: n
 
 const TONSTAKERS_REQUIRED_RESERVE = 1.1;
 const SUPPORTED_STON_SWAP_SYMBOLS = new Set(['tesreed', 'testblue']);
+const ACTIVE_NETWORK = process.env.NETWORK === 'mainnet' ? 'mainnet' : 'testnet';
 
 
 function buildBefore(analysis: PortfolioAnalysis): AllocationPoint[] {
@@ -99,15 +100,18 @@ export function recommendStrategy(goal: StrategyGoal, analysis: PortfolioAnalysi
   const hasSupportedSwapAsset = analysis.holdings.some(
     (holding) => holding.category === 'jetton' && SUPPORTED_STON_SWAP_SYMBOLS.has(holding.symbol.toLowerCase()),
   );
+  const swapEnabled = ACTIVE_NETWORK !== 'testnet';
 
   const execution: ExecutionAction[] = [
     {
       type: 'swap',
       title: 'STON.fi rebalance',
-      description: hasSupportedSwapAsset
-        ? 'Optional pre-stake rebalance can route supported testnet jettons through STON.fi before staking.'
-        : 'No supported STON.fi testnet swap asset is present in this wallet, so TonRoute can proceed directly to staking.',
-      status: hasSupportedSwapAsset ? 'ready' : 'not_needed',
+      description: swapEnabled
+        ? hasSupportedSwapAsset
+          ? 'Optional pre-stake rebalance can route supported assets through STON.fi before staking.'
+          : 'No supported STON.fi swap asset is present in this wallet, so TonRoute can proceed directly to staking.'
+        : 'STON.fi swaps are currently enabled by the STON.fi team on mainnet only. TonRoute can show the rebalance step here, but real swap execution is unavailable on testnet, so this step is skipped.',
+      status: swapEnabled ? (hasSupportedSwapAsset ? 'ready' : 'not_needed') : 'unsupported',
       payload: {
         endpoint: '/api/execution/swap-preview',
         supportedPairs: ['TON ↔ TesREED', 'TON ↔ TestBlue'],

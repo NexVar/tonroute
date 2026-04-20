@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import { Address, beginCell, toNano } from '@ton/core';
+import { CHAIN } from '@tonconnect/sdk';
 import { env } from '@/lib/env';
 import { getServerWalletSigner } from '@/lib/ton/signer';
 
@@ -22,6 +23,7 @@ type TonstakersMessage = {
 
 type TonstakersTransactionDetails = {
   validUntil: number;
+  network?: CHAIN;
   messages: TonstakersMessage[];
 };
 
@@ -91,6 +93,9 @@ async function waitUntilReady(tonstakers: InstanceType<typeof Tonstakers>) {
 function buildStakeMessage(amountTon: number) {
   const amount = toNano(amountTon);
   const totalValue = amount + toNano(TONSTAKERS_STAKE_FEE_RESERVE);
+  const stakingAddress = Address.parse(
+    env.NETWORK === 'testnet' ? TONSTAKERS_TESTNET_ADDRESS : TONSTAKERS_MAINNET_ADDRESS,
+  );
   const payload = beginCell()
     .storeUint(TONSTAKERS_STAKE_OPCODE, 32)
     .storeUint(1, 64)
@@ -100,10 +105,11 @@ function buildStakeMessage(amountTon: number) {
     .toString('base64');
 
   return {
-    validUntil: Date.now() + 10 * 60 * 1000,
+    validUntil: Math.floor(Date.now() / 1000) + 10 * 60,
+    network: env.NETWORK === 'testnet' ? CHAIN.TESTNET : CHAIN.MAINNET,
     messages: [
       {
-        address: env.NETWORK === 'testnet' ? TONSTAKERS_TESTNET_ADDRESS : TONSTAKERS_MAINNET_ADDRESS,
+        address: stakingAddress.toRawString(),
         amount: totalValue.toString(),
         payload,
       },

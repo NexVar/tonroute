@@ -82,6 +82,7 @@ export interface DevWalletInfo {
 
 export interface TonConnectLikeTransaction {
   validUntil: number;
+  network?: string;
   messages: Array<{
     address: string;
     amount: string;

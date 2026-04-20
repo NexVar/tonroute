@@ -29,6 +29,7 @@ describe('recommendStrategy', () => {
     const result = recommendStrategy('yield', basePortfolio);
 
     expect(result.label).toBe('Yield');
+    expect(result.execution.find((step) => step.type === 'swap')?.status).toBe('unsupported');
     expect(result.execution.find((step) => step.type === 'stake')?.status).toBe('ready');
     expect(result.after.find((entry) => entry.label === 'Staked tsTON')?.ton).toBeGreaterThan(8);
   });
