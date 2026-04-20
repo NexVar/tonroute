@@ -39,21 +39,26 @@ export function Hero({ showConnect, demoBadge }: HeroProps) {
 function HeroStats() {
   return (
     <div className="stat-rail" aria-label="Live protocol stats">
-      <span className="stat-rail__pulse">Live</span>
-      <div className="stat">
-        <span className="stat__label">Tonstakers APY</span>
-        <span className="stat__value">5.4%</span>
-        <span className="stat__hint">+0.1 · 24h</span>
+      <div className="stat-rail__header">
+        <span className="stat-rail__title">Live signal</span>
+        <span className="stat-rail__pulse">Live</span>
       </div>
-      <div className="stat">
-        <span className="stat__label">STON.fi Routes</span>
-        <span className="stat__value">2.1M</span>
-        <span className="stat__hint">TVL routed</span>
-      </div>
-      <div className="stat">
-        <span className="stat__label">Idle TON found</span>
-        <span className="stat__value">38%</span>
-        <span className="stat__hint">avg per wallet</span>
+      <div className="stat-rail__grid">
+        <div className="stat">
+          <span className="stat__label">Tonstakers APY</span>
+          <span className="stat__value">5.4%</span>
+          <span className="stat__hint">+0.1 · 24h</span>
+        </div>
+        <div className="stat">
+          <span className="stat__label">STON.fi Routes</span>
+          <span className="stat__value">2.1M</span>
+          <span className="stat__hint">TVL routed</span>
+        </div>
+        <div className="stat">
+          <span className="stat__label">Idle TON found</span>
+          <span className="stat__value">38%</span>
+          <span className="stat__hint">avg per wallet</span>
+        </div>
       </div>
     </div>
   );

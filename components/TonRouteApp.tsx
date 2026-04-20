@@ -19,6 +19,7 @@ import { ExecutionFlow, type StepRuntimeStatus } from './ExecutionFlow';
 import { GoalSelector } from './GoalSelector';
 import { Header } from './Header';
 import { Hero } from './Hero';
+import { MobileActionBar } from './MobileActionBar';
 import { PortfolioCard } from './PortfolioCard';
 import { RecommendationCard } from './RecommendationCard';
 import { ResultCard } from './ResultCard';
@@ -270,6 +271,39 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
     return 'choose';
   }, [activeAddress, portfolio, recommendation, plan, finished]);
 
+  const planHasWork = useMemo(() => (plan ? plan.execution.some((step) => step.status === 'ready') : false), [plan]);
+
+  const showMobileAction = finished || Boolean(plan) || Boolean(recommendation);
+  const mobileActionLabel = finished
+    ? 'Start a new plan'
+    : plan
+      ? running
+        ? 'Running…'
+        : planHasWork
+          ? 'Begin execution'
+          : 'Nothing to execute'
+      : recommendation
+        ? planLoading
+          ? 'Preparing…'
+          : 'Continue →'
+        : '';
+  const mobileActionHint = finished ? 'Done' : plan ? 'Step 05' : recommendation ? 'Step 04' : undefined;
+  const mobileActionDisabled = finished
+    ? false
+    : plan
+      ? running || !planHasWork
+      : recommendation
+        ? planLoading || recommendationLoading
+        : true;
+  const mobileActionVariant = finished ? ('ghost' as const) : ('primary' as const);
+  const mobileActionOnClick = finished
+    ? handleResetExecution
+    : plan
+      ? handleStartExecution
+      : recommendation
+        ? handleContinueToExecution
+        : undefined;
+
   const walletReady = restored || restoreTimedOut;
   const showWalletGate = walletReady && !activeAddress;
   const initialising = !walletReady;
@@ -368,11 +402,11 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
           <div className="site-footer__brand">
             <span className="site-footer__crafted">Crafted by</span>
             <a
-              href="https://github.com/NexVar"
+              href="https://linktr.ee/NexVar"
               target="_blank"
               rel="noreferrer"
               className="site-footer__org"
-              aria-label="NexVar on GitHub"
+              aria-label="NexVar on Linktree"
             >
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M4 20V4l8 6 8-6v16" />
@@ -398,6 +432,16 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
           </div>
         </div>
       </footer>
+      {/* eslint-disable-next-line react-hooks/refs -- mobile action props are derived from state/callbacks, not mutable refs */}
+      {showMobileAction && mobileActionOnClick && (
+        <MobileActionBar
+          label={mobileActionLabel}
+          hint={mobileActionHint}
+          onClick={mobileActionOnClick}
+          disabled={mobileActionDisabled}
+          variant={mobileActionVariant}
+        />
+      )}
     </div>
   );
 }

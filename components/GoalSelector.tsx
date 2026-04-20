@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import type { StrategyGoal } from '@/lib/types';
 import { Section } from './Section';
@@ -54,6 +55,39 @@ interface GoalSelectorProps {
 }
 
 export function GoalSelector({ selected, loading, disabled, onSelect }: GoalSelectorProps) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [activeIdx, setActiveIdx] = useState(OPTIONS.findIndex((o) => o.recommended));
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    const update = () => {
+      const first = grid.firstElementChild as HTMLElement | null;
+      if (!first) return;
+      const cardWidth = first.getBoundingClientRect().width;
+      const style = window.getComputedStyle(grid);
+      const gap = parseFloat(style.columnGap || style.gap || '0');
+      const idx = Math.round(grid.scrollLeft / (cardWidth + gap));
+      setActiveIdx(Math.min(OPTIONS.length - 1, Math.max(0, idx)));
+    };
+
+    update();
+    grid.addEventListener('scroll', update, { passive: true });
+    return () => grid.removeEventListener('scroll', update);
+  }, []);
+
+  const scrollToIdx = useCallback((idx: number) => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const first = grid.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    const cardWidth = first.getBoundingClientRect().width;
+    const style = window.getComputedStyle(grid);
+    const gap = parseFloat(style.columnGap || style.gap || '0');
+    grid.scrollTo({ left: idx * (cardWidth + gap), behavior: 'smooth' });
+  }, []);
+
   return (
     <Section
       eyebrow="Step 03"
@@ -64,7 +98,7 @@ export function GoalSelector({ selected, loading, disabled, onSelect }: GoalSele
       }
       description="Each option targets a different blend of liquidity, yield, and risk. Switch at any time — the recommendation updates instantly."
     >
-      <div className="goal-grid" role="radiogroup" aria-label="Strategy goal">
+      <div className="goal-grid" role="radiogroup" aria-label="Strategy goal" ref={gridRef}>
         {OPTIONS.map((option) => {
           const isSelected = option.goal === selected;
           return (
@@ -82,35 +116,49 @@ export function GoalSelector({ selected, loading, disabled, onSelect }: GoalSele
                   loading && isSelected && 'goal-card--loading',
                 )}
               >
-              <div className="goal-card__header">
-                <span className="goal-card__label">{option.label}</span>
-                <span className="goal-card__apy">{option.expectedApy.toFixed(1)}%</span>
-              </div>
-              <p className="goal-card__tagline">{option.tagline}</p>
-              <div className="goal-card__meta">
-                <div className="goal-card__meta-row">
-                  <span className="goal-card__meta-label">Liquid</span>
-                  <span className="goal-card__meta-value">{option.liquidPercentage}%</span>
+                <div className="goal-card__header">
+                  <span className="goal-card__label">{option.label}</span>
+                  <span className="goal-card__apy">{option.expectedApy.toFixed(1)}%</span>
                 </div>
-                <div className="goal-card__meta-row">
-                  <span className="goal-card__meta-label">Staked</span>
-                  <span className="goal-card__meta-value">{100 - option.liquidPercentage}%</span>
+                <p className="goal-card__tagline">{option.tagline}</p>
+                <div className="goal-card__meta">
+                  <div className="goal-card__meta-row">
+                    <span className="goal-card__meta-label">Liquid</span>
+                    <span className="goal-card__meta-value">{option.liquidPercentage}%</span>
+                  </div>
+                  <div className="goal-card__meta-row">
+                    <span className="goal-card__meta-label">Staked</span>
+                    <span className="goal-card__meta-value">{100 - option.liquidPercentage}%</span>
+                  </div>
+                  <div className="goal-card__meta-row">
+                    <span className="goal-card__meta-label">Unlock</span>
+                    <span className="goal-card__meta-value">{option.unlockHours}</span>
+                  </div>
+                  <div className="goal-card__meta-row">
+                    <span className="goal-card__meta-label">Risk</span>
+                    <span className="goal-card__meta-value">{option.risk}</span>
+                  </div>
                 </div>
-                <div className="goal-card__meta-row">
-                  <span className="goal-card__meta-label">Unlock</span>
-                  <span className="goal-card__meta-value">{option.unlockHours}</span>
-                </div>
-                <div className="goal-card__meta-row">
-                  <span className="goal-card__meta-label">Risk</span>
-                  <span className="goal-card__meta-value">{option.risk}</span>
-                </div>
-              </div>
-              {loading && isSelected && <span className="goal-card__spinner" aria-hidden="true" />}
+                {loading && isSelected && <span className="goal-card__spinner" aria-hidden="true" />}
               </button>
               {option.recommended && <span className="goal-card__badge">Recommended</span>}
             </div>
           );
         })}
+      </div>
+
+      <div className="goal-dots" role="tablist" aria-label="Goal pagination">
+        {OPTIONS.map((option, idx) => (
+          <button
+            key={option.goal}
+            type="button"
+            role="tab"
+            aria-selected={idx === activeIdx}
+            aria-label={`Show ${option.label} option`}
+            className={clsx('goal-dot', idx === activeIdx && 'goal-dot--active')}
+            onClick={() => scrollToIdx(idx)}
+          />
+        ))}
       </div>
     </Section>
   );
