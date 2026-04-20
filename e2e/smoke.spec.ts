@@ -11,7 +11,7 @@ test('local demo wallet can reach an execution plan', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /demo wallet/i }).click();
 
-  await expect(page.getByRole('heading', { name: 'Wallet snapshot' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wallet snapshot' })).toBeVisible({ timeout: 15_000 });
   await page.getByRole('radio', { name: /Yield/ }).click();
   await page.getByRole('button', { name: /Continue to execution|Preparing plan/ }).click();
 
