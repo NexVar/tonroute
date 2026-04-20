@@ -109,7 +109,11 @@ function buildStakeMessage(amountTon: number) {
     network: env.NETWORK === 'testnet' ? CHAIN.TESTNET : CHAIN.MAINNET,
     messages: [
       {
-        address: stakingAddress.toRawString(),
+        address: stakingAddress.toString({
+          bounceable: true,
+          urlSafe: true,
+          testOnly: env.NETWORK === 'testnet',
+        }),
         amount: totalValue.toString(),
         payload,
       },
