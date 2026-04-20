@@ -366,15 +366,39 @@ export function TonRouteApp() {
         )}
       </main>
       <footer className="site-footer">
-        <span>© {new Date().getFullYear()} TonRoute</span>
-        <span className="site-footer__sep">·</span>
-        <a href="https://ston.fi" target="_blank" rel="noreferrer">
-          STON.fi
-        </a>
-        <span className="site-footer__sep">·</span>
-        <a href="https://tonstakers.com" target="_blank" rel="noreferrer">
-          Tonstakers
-        </a>
+        <div className="site-footer__inner">
+          <div className="site-footer__brand">
+            <span className="site-footer__crafted">Crafted by</span>
+            <a
+              href="https://github.com/NexVar"
+              target="_blank"
+              rel="noreferrer"
+              className="site-footer__org"
+              aria-label="NexVar on GitHub"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 20V4l8 6 8-6v16" />
+                <path d="M4 20l8-6 8 6" />
+              </svg>
+              NexVar
+            </a>
+          </div>
+          <div className="site-footer__meta">
+            <span>© {new Date().getFullYear()} TonRoute</span>
+            <span className="site-footer__sep">·</span>
+            <a href="https://ston.fi" target="_blank" rel="noreferrer">
+              STON.fi
+            </a>
+            <span className="site-footer__sep">·</span>
+            <a href="https://tonstakers.com" target="_blank" rel="noreferrer">
+              Tonstakers
+            </a>
+            <span className="site-footer__sep">·</span>
+            <a href="https://github.com/NexVar/tonroute" target="_blank" rel="noreferrer">
+              Source
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );
