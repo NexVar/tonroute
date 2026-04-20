@@ -273,47 +273,36 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
 
   const planHasWork = useMemo(() => (plan ? plan.execution.some((step) => step.status === 'ready') : false), [plan]);
 
-  const mobileAction = useMemo(() => {
-    if (finished) {
-      return {
-        label: 'Start a new plan',
-        hint: 'Done',
-        onClick: handleResetExecution,
-        disabled: false,
-        variant: 'ghost' as const,
-      };
-    }
-    if (plan) {
-      return {
-        label: running ? 'Running…' : planHasWork ? 'Begin execution' : 'Nothing to execute',
-        hint: 'Step 05',
-        onClick: handleStartExecution,
-        disabled: running || !planHasWork,
-        variant: 'primary' as const,
-      };
-    }
-    if (recommendation) {
-      return {
-        label: planLoading ? 'Preparing…' : 'Continue →',
-        hint: 'Step 04',
-        onClick: handleContinueToExecution,
-        disabled: planLoading || recommendationLoading,
-        variant: 'primary' as const,
-      };
-    }
-    return null;
-  }, [
-    finished,
-    plan,
-    recommendation,
-    running,
-    planHasWork,
-    planLoading,
-    recommendationLoading,
-    handleResetExecution,
-    handleStartExecution,
-    handleContinueToExecution,
-  ]);
+  const showMobileAction = finished || Boolean(plan) || Boolean(recommendation);
+  const mobileActionLabel = finished
+    ? 'Start a new plan'
+    : plan
+      ? running
+        ? 'Running…'
+        : planHasWork
+          ? 'Begin execution'
+          : 'Nothing to execute'
+      : recommendation
+        ? planLoading
+          ? 'Preparing…'
+          : 'Continue →'
+        : '';
+  const mobileActionHint = finished ? 'Done' : plan ? 'Step 05' : recommendation ? 'Step 04' : undefined;
+  const mobileActionDisabled = finished
+    ? false
+    : plan
+      ? running || !planHasWork
+      : recommendation
+        ? planLoading || recommendationLoading
+        : true;
+  const mobileActionVariant = finished ? ('ghost' as const) : ('primary' as const);
+  const mobileActionOnClick = finished
+    ? handleResetExecution
+    : plan
+      ? handleStartExecution
+      : recommendation
+        ? handleContinueToExecution
+        : undefined;
 
   const walletReady = restored || restoreTimedOut;
   const showWalletGate = walletReady && !activeAddress;
@@ -443,13 +432,14 @@ export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
           </div>
         </div>
       </footer>
-      {mobileAction && (
+      {/* eslint-disable-next-line react-hooks/refs -- mobile action props are derived from state/callbacks, not mutable refs */}
+      {showMobileAction && mobileActionOnClick && (
         <MobileActionBar
-          label={mobileAction.label}
-          hint={mobileAction.hint}
-          onClick={mobileAction.onClick}
-          disabled={mobileAction.disabled}
-          variant={mobileAction.variant}
+          label={mobileActionLabel}
+          hint={mobileActionHint}
+          onClick={mobileActionOnClick}
+          disabled={mobileActionDisabled}
+          variant={mobileActionVariant}
         />
       )}
     </div>
