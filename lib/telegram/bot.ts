@@ -20,6 +20,53 @@ export function buildTelegramWebhookUrl() {
   return buildAppUrl(TELEGRAM_WEBHOOK_PATH);
 }
 
+function buildHelpText() {
+  return ['Commands:', '/start - Open TonRoute', '/help - Show this help', '/route <wallet> - Analyze a TON wallet and get a recommendation'].join('\n');
+}
+
+async function buildRouteReply(address: string) {
+  const analysis = await analyzePortfolio(address);
+  const goals = ['safe', 'balanced', 'yield'] as const;
+  const recommendations = goals.map((goal) => recommendStrategy(goal, analysis));
+  const best = recommendations.reduce((current, candidate) =>
+    candidate.expectedApy > current.expectedApy ? candidate : current,
+  );
+
+  return [
+    `Wallet: ${analysis.address}`,
+    `Idle TON: ${analysis.idleTon}`,
+    `Best fit: ${best.label}`,
+    `Estimated portfolio APY: ${best.expectedApy}%`,
+    `Why: ${best.why[0]}`,
+    `Web app: ${buildAppUrl('/')}`,
+  ].join('\n');
+}
+
+async function sendTelegramApi(method: string, body: Record<string, unknown>) {
+  if (!env.TELEGRAM_BOT_TOKEN) {
+    throw new Error('TELEGRAM_BOT_TOKEN is not configured.');
+  }
+
+  const response = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${method}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const payload = (await response.json()) as { ok: boolean; description?: string };
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.description ?? `Telegram API ${method} failed (${response.status})`);
+  }
+}
+
+async function sendTelegramText(chatId: number, text: string, replyMarkup?: Record<string, unknown>) {
+  await sendTelegramApi('sendMessage', {
+    chat_id: chatId,
+    text,
+    ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+  });
+}
+
 function registerTelegramHandlers(bot: Telegraf<Context>) {
   bot.start(async (ctx) => {
     await ctx.reply(
@@ -33,12 +80,7 @@ function registerTelegramHandlers(bot: Telegraf<Context>) {
   });
 
   bot.help(async (ctx) => {
-    await ctx.reply([
-      'Commands:',
-      '/start - Open TonRoute',
-      '/help - Show this help',
-      '/route <wallet> - Analyze a TON wallet and get a recommendation',
-    ].join('\n'));
+    await ctx.reply(buildHelpText());
   });
 
   bot.command('route', async (ctx) => {
@@ -51,23 +93,7 @@ function registerTelegramHandlers(bot: Telegraf<Context>) {
     }
 
     try {
-      const analysis = await analyzePortfolio(address);
-      const goals = ['safe', 'balanced', 'yield'] as const;
-      const recommendations = goals.map((goal) => recommendStrategy(goal, analysis));
-      const best = recommendations.reduce((current, candidate) =>
-        candidate.expectedApy > current.expectedApy ? candidate : current,
-      );
-
-      await ctx.reply(
-        [
-          `Wallet: ${analysis.address}`,
-          `Idle TON: ${analysis.idleTon}`,
-          `Best fit: ${best.label}`,
-          `Estimated portfolio APY: ${best.expectedApy}%`,
-          `Why: ${best.why[0]}`,
-          `Web app: ${buildAppUrl('/')}`,
-        ].join('\n'),
-      );
+      await ctx.reply(await buildRouteReply(address));
     } catch (error) {
       await ctx.reply(
         `TonRoute could not analyze that wallet: ${error instanceof Error ? error.message : 'unknown error'}`,
@@ -98,6 +124,47 @@ export function getTelegramBot() {
 }
 
 export async function handleTelegramUpdate(update: Update) {
-  const bot = getTelegramBot();
-  await bot.handleUpdate(update);
+  const message = 'message' in update ? update.message : undefined;
+  const text = message && 'text' in message ? message.text : undefined;
+  const chatId = message?.chat?.id;
+
+  if (!message || typeof text !== 'string' || typeof chatId !== 'number') {
+    return;
+  }
+
+  const [command, ...rest] = text.trim().split(/\s+/);
+  const normalizedCommand = command?.split('@')[0]?.toLowerCase();
+
+  switch (normalizedCommand) {
+    case '/start':
+      await sendTelegramText(
+        chatId,
+        'Welcome to TonRoute. I can inspect a TON testnet wallet and suggest Safe / Balanced / Yield routing, then send you into the web app.',
+        {
+          inline_keyboard: [[{ text: 'Open TonRoute', web_app: { url: buildAppUrl('/') } }]],
+        },
+      );
+      return;
+    case '/help':
+      await sendTelegramText(chatId, buildHelpText());
+      return;
+    case '/route': {
+      const address = rest.join(' ').trim();
+      if (!address) {
+        await sendTelegramText(chatId, 'Usage: /route <ton-wallet-address>');
+        return;
+      }
+      try {
+        await sendTelegramText(chatId, await buildRouteReply(address));
+      } catch (error) {
+        await sendTelegramText(
+          chatId,
+          `TonRoute could not analyze that wallet: ${error instanceof Error ? error.message : 'unknown error'}`,
+        );
+      }
+      return;
+    }
+    default:
+      return;
+  }
 }
