@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import type { ExecutionAction } from '@/lib/types';
+import type { ExecutionAction, NetworkName } from '@/lib/types';
 import type { ExecutionPlan } from './lib/api-client';
 import { Section } from './Section';
 import { formatTon } from './lib/format';
@@ -16,6 +16,8 @@ interface ExecutionFlowProps {
   onStart: () => void;
   onReset: () => void;
   errorMessage?: string | null;
+  network?: NetworkName;
+  walletAddress?: string;
 }
 
 function deriveDisplayStatus(action: ExecutionAction, runtime: StepRuntimeStatus | undefined): StepRuntimeStatus {
@@ -27,11 +29,27 @@ function deriveDisplayStatus(action: ExecutionAction, runtime: StepRuntimeStatus
 
 const STATUS_LABELS: Record<StepRuntimeStatus, string> = {
   pending: 'Pending',
-  in_progress: 'In progress',
-  completed: 'Completed',
+  in_progress: 'Signing…',
+  completed: 'Confirmed',
   skipped: 'Not needed',
-  failed: 'Failed'
+  failed: 'Failed',
 };
+
+const GAS_ESTIMATE: Record<string, string> = {
+  stake: '~0.05 TON',
+  swap: '~0.1 TON',
+  noop: '—',
+};
+
+const TIME_ESTIMATE: Record<string, string> = {
+  stake: '~10s',
+  swap: '~15s',
+  noop: '—',
+};
+
+function tonviewerBase(network?: NetworkName): string {
+  return network === 'testnet' ? 'https://testnet.tonviewer.com' : 'https://tonviewer.com';
+}
 
 export function ExecutionFlow({
   plan,
@@ -40,15 +58,21 @@ export function ExecutionFlow({
   finished,
   onStart,
   onReset,
-  errorMessage
+  errorMessage,
+  network,
+  walletAddress,
 }: ExecutionFlowProps) {
   const actionableSteps = plan.execution.filter((step) => step.status === 'ready');
   const hasWork = actionableSteps.length > 0;
 
   return (
     <Section
-      eyebrow="Step 5"
-      title="Execution plan"
+      eyebrow="Step 05"
+      title={
+        <>
+          Execution <em>plan</em>
+        </>
+      }
       description={plan.summary}
       actions={
         finished ? (
@@ -70,6 +94,7 @@ export function ExecutionFlow({
       <ol className="execution">
         {plan.execution.map((step, index) => {
           const status = deriveDisplayStatus(step, runtime[index]);
+          const showViewerLink = status === 'completed' && walletAddress;
           return (
             <li key={`${step.type}-${index}`} className={clsx('execution__step', `execution__step--${status}`)}>
               <div className="execution__indicator" aria-hidden="true">
@@ -87,7 +112,7 @@ export function ExecutionFlow({
                 <p>{step.description}</p>
                 <dl className="execution__meta">
                   <div>
-                    <dt>Type</dt>
+                    <dt>Action</dt>
                     <dd>{step.type}</dd>
                   </div>
                   {typeof step.amountTon === 'number' && step.amountTon > 0 && (
@@ -108,16 +133,34 @@ export function ExecutionFlow({
                       <dd>{step.assetOut}</dd>
                     </div>
                   )}
+                  <div>
+                    <dt>Gas est.</dt>
+                    <dd>{GAS_ESTIMATE[step.type] ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Confirm</dt>
+                    <dd>{TIME_ESTIMATE[step.type] ?? '—'}</dd>
+                  </div>
                 </dl>
+                {showViewerLink && (
+                  <a
+                    href={`${tonviewerBase(network)}/${walletAddress}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="execution__link"
+                  >
+                    View on tonviewer →
+                  </a>
+                )}
               </div>
             </li>
           );
         })}
       </ol>
-      {errorMessage && <p className="execution__error">{errorMessage}</p>}
+      {errorMessage && <p className="execution__error" role="alert">{errorMessage}</p>}
       <p className="execution__footnote">
-        Wallet signing & on-chain submission for STON.fi and Tonstakers steps are wired by the execution layer; this view
-        reflects the plan and routes the request once that wiring is in place.
+        Wallet signing &amp; on-chain submission for STON.fi and Tonstakers steps are wired by the execution layer; this
+        view reflects the plan and routes the request once that wiring is in place.
       </p>
     </Section>
   );

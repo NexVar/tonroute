@@ -18,6 +18,7 @@ import { ErrorCallout } from './ErrorCallout';
 import { ExecutionFlow, type StepRuntimeStatus } from './ExecutionFlow';
 import { GoalSelector } from './GoalSelector';
 import { Header } from './Header';
+import { Hero } from './Hero';
 import { PortfolioCard } from './PortfolioCard';
 import { RecommendationCard } from './RecommendationCard';
 import { ResultCard } from './ResultCard';
@@ -279,17 +280,10 @@ export function TonRouteApp() {
     <div className="app">
       <Header />
       <main className="app__main">
-        <section className="hero">
-          <p className="hero__eyebrow">TonRoute</p>
-          <h1 className="hero__title">Put your idle TON to work — without guessing.</h1>
-          <p className="hero__subtitle">
-            Connect your wallet, pick the goal that fits, and TonRoute drafts a comparison and a one-click execution plan
-            across STON.fi and Tonstakers.
-          </p>
-          {walletMode === 'demo' && demoWallet && (
-            <p className="hero__badge">Using local demo wallet {demoWallet.address}</p>
-          )}
-        </section>
+        <Hero
+          showConnect={!activeAddress}
+          demoBadge={walletMode === 'demo' && demoWallet ? demoWallet.address : null}
+        />
 
         <Stepper current={currentStep} />
 
@@ -362,6 +356,8 @@ export function TonRouteApp() {
                 onStart={handleStartExecution}
                 onReset={handleResetExecution}
                 errorMessage={executionError}
+                network={portfolio?.network}
+                walletAddress={activeAddress ?? undefined}
               />
             )}
 
