@@ -3,8 +3,8 @@ import clsx from 'clsx';
 
 interface SectionProps {
   eyebrow?: string;
-  title?: string;
-  description?: string;
+  title?: ReactNode;
+  description?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
   className?: string;

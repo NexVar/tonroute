@@ -5,13 +5,77 @@ interface AllocationChartProps {
   title: string;
   points: AllocationPoint[];
   total?: number;
+  variant?: 'bar' | 'donut';
+  centerLabel?: string;
 }
 
-const SEGMENT_COLORS = ['var(--allocation-liquid)', 'var(--allocation-staked)', 'var(--allocation-extra)'];
+const SEGMENT_COLORS = [
+  '#0098ea',
+  '#3ddc84',
+  '#f3b84b',
+  '#a990ff',
+];
 
-export function AllocationChart({ title, points, total }: AllocationChartProps) {
+export function AllocationChart({
+  title,
+  points,
+  total,
+  variant = 'bar',
+  centerLabel,
+}: AllocationChartProps) {
   const computedTotal = total ?? points.reduce((sum, point) => sum + Math.max(point.ton, 0), 0);
   const safeTotal = computedTotal > 0 ? computedTotal : 1;
+
+  if (variant === 'donut') {
+    const { stops } = points.reduce(
+      (result, point, index) => {
+        const value = Math.max(point.ton, 0);
+        const pct = (value / safeTotal) * 100;
+        if (pct <= 0) return result;
+        const color = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
+        const start = result.offset;
+        const end = start + pct;
+        result.stops.push(`${color} ${start}% ${end}%`);
+        result.offset = end;
+        return result;
+      },
+      { stops: [] as string[], offset: 0 },
+    );
+
+    const donutStops = stops.join(', ') || `rgba(242, 235, 215, 0.08) 0% 100%`;
+
+    return (
+      <figure className="donut">
+        <figcaption className="donut__title">{title}</figcaption>
+        <div
+          className="donut__chart"
+          role="img"
+          aria-label={`${title} composition`}
+          style={{ ['--donut-stops' as string]: donutStops } as React.CSSProperties}
+        >
+          <div className="donut__center">
+            <span className="donut__center-value">{formatTon(computedTotal, 2)}</span>
+            <span className="donut__center-label">{centerLabel ?? 'TON total'}</span>
+          </div>
+        </div>
+        <ul className="donut__legend">
+          {points.map((point, index) => (
+            <li key={point.label}>
+              <span
+                className="donut__swatch"
+                aria-hidden="true"
+                style={{ background: SEGMENT_COLORS[index % SEGMENT_COLORS.length] }}
+              />
+              <span className="donut__legend-label">{point.label}</span>
+              <span className="donut__legend-value">
+                {formatTon(point.ton, 2)} · {formatPercent(point.percentage)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </figure>
+    );
+  }
 
   return (
     <figure className="allocation">
@@ -26,7 +90,7 @@ export function AllocationChart({ title, points, total }: AllocationChartProps) 
               className="allocation__segment"
               style={{
                 width: `${widthPct}%`,
-                background: SEGMENT_COLORS[index % SEGMENT_COLORS.length]
+                background: SEGMENT_COLORS[index % SEGMENT_COLORS.length],
               }}
               title={`${point.label}: ${formatTon(point.ton)} TON`}
             />

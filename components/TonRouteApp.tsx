@@ -18,6 +18,7 @@ import { ErrorCallout } from './ErrorCallout';
 import { ExecutionFlow, type StepRuntimeStatus } from './ExecutionFlow';
 import { GoalSelector } from './GoalSelector';
 import { Header } from './Header';
+import { Hero } from './Hero';
 import { PortfolioCard } from './PortfolioCard';
 import { RecommendationCard } from './RecommendationCard';
 import { ResultCard } from './ResultCard';
@@ -279,17 +280,10 @@ export function TonRouteApp() {
     <div className="app">
       <Header />
       <main className="app__main">
-        <section className="hero">
-          <p className="hero__eyebrow">TonRoute</p>
-          <h1 className="hero__title">Put your idle TON to work — without guessing.</h1>
-          <p className="hero__subtitle">
-            Connect your wallet, pick the goal that fits, and TonRoute drafts a comparison and a one-click execution plan
-            across STON.fi and Tonstakers.
-          </p>
-          {walletMode === 'demo' && demoWallet && (
-            <p className="hero__badge">Using local demo wallet {demoWallet.address}</p>
-          )}
-        </section>
+        <Hero
+          showConnect={!activeAddress}
+          demoBadge={walletMode === 'demo' && demoWallet ? demoWallet.address : null}
+        />
 
         <Stepper current={currentStep} />
 
@@ -362,6 +356,8 @@ export function TonRouteApp() {
                 onStart={handleStartExecution}
                 onReset={handleResetExecution}
                 errorMessage={executionError}
+                network={portfolio?.network}
+                walletAddress={activeAddress ?? undefined}
               />
             )}
 
@@ -370,15 +366,39 @@ export function TonRouteApp() {
         )}
       </main>
       <footer className="site-footer">
-        <span>© {new Date().getFullYear()} TonRoute</span>
-        <span className="site-footer__sep">·</span>
-        <a href="https://ston.fi" target="_blank" rel="noreferrer">
-          STON.fi
-        </a>
-        <span className="site-footer__sep">·</span>
-        <a href="https://tonstakers.com" target="_blank" rel="noreferrer">
-          Tonstakers
-        </a>
+        <div className="site-footer__inner">
+          <div className="site-footer__brand">
+            <span className="site-footer__crafted">Crafted by</span>
+            <a
+              href="https://github.com/NexVar"
+              target="_blank"
+              rel="noreferrer"
+              className="site-footer__org"
+              aria-label="NexVar on GitHub"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 20V4l8 6 8-6v16" />
+                <path d="M4 20l8-6 8 6" />
+              </svg>
+              NexVar
+            </a>
+          </div>
+          <div className="site-footer__meta">
+            <span>© {new Date().getFullYear()} TonRoute</span>
+            <span className="site-footer__sep">·</span>
+            <a href="https://ston.fi" target="_blank" rel="noreferrer">
+              STON.fi
+            </a>
+            <span className="site-footer__sep">·</span>
+            <a href="https://tonstakers.com" target="_blank" rel="noreferrer">
+              Tonstakers
+            </a>
+            <span className="site-footer__sep">·</span>
+            <a href="https://github.com/NexVar/tonroute" target="_blank" rel="noreferrer">
+              Source
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );

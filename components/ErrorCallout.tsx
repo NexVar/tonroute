@@ -3,11 +3,18 @@ interface ErrorCalloutProps {
   message: string;
   details?: string;
   onRetry?: () => void;
+  severity?: 'error' | 'warn';
 }
 
-export function ErrorCallout({ title = 'Something went wrong', message, details, onRetry }: ErrorCalloutProps) {
+export function ErrorCallout({
+  title = 'Something went wrong',
+  message,
+  details,
+  onRetry,
+  severity = 'error',
+}: ErrorCalloutProps) {
   return (
-    <div role="alert" className="callout callout--error">
+    <div role="alert" className={`callout callout--${severity}`}>
       <div className="callout__body">
         <h3 className="callout__title">{title}</h3>
         <p className="callout__message">{message}</p>
