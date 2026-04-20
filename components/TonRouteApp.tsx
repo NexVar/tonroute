@@ -31,6 +31,10 @@ interface RequestError {
   details?: string;
 }
 
+interface TonRouteAppProps {
+  demoWalletEnabled?: boolean;
+}
+
 function toRequestError(error: unknown): RequestError {
   if (error instanceof ApiClientError) {
     return { message: error.message, details: error.details };
@@ -39,13 +43,7 @@ function toRequestError(error: unknown): RequestError {
   return { message: 'Unknown error' };
 }
 
-const DEMO_WALLET_ENABLED = (() => {
-  const raw = process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET;
-  if (raw == null) return process.env.NODE_ENV !== 'production';
-  return ['1', 'true', 'yes', 'on'].includes(raw.toLowerCase());
-})();
-
-export function TonRouteApp() {
+export function TonRouteApp({ demoWalletEnabled = false }: TonRouteAppProps) {
   const restored = useIsConnectionRestored();
   const tonConnectAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
@@ -291,7 +289,7 @@ export function TonRouteApp() {
 
         {showWalletGate && (
           <WalletGate
-            onUseDemoWallet={DEMO_WALLET_ENABLED ? handleUseDemoWallet : undefined}
+            onUseDemoWallet={demoWalletEnabled ? handleUseDemoWallet : undefined}
             demoLoading={demoWalletLoading}
           />
         )}

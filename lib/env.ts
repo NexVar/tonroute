@@ -43,11 +43,12 @@ function parseFlag(value: string | undefined, fallback: boolean) {
 }
 
 const defaultDemoWalletEnabled = process.env.NODE_ENV !== 'production';
+const demoWalletConfigured = Boolean(env.MNEMONIC);
 
 export const runtimeFlags = {
-  demoWalletClientEnabled: parseFlag(env.NEXT_PUBLIC_ENABLE_DEMO_WALLET, defaultDemoWalletEnabled),
+  demoWalletClientEnabled: parseFlag(env.NEXT_PUBLIC_ENABLE_DEMO_WALLET, defaultDemoWalletEnabled) && demoWalletConfigured,
   demoWalletServerEnabled: parseFlag(
     env.ENABLE_DEMO_WALLET ?? env.NEXT_PUBLIC_ENABLE_DEMO_WALLET,
     defaultDemoWalletEnabled,
-  ),
+  ) && demoWalletConfigured,
 };
