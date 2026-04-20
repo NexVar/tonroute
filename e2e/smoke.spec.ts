@@ -9,7 +9,7 @@ test('health endpoint responds', async ({ request }) => {
 
 test('local demo wallet can reach an execution plan', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Use local demo wallet' }).click();
+  await page.getByRole('button', { name: /demo wallet/i }).click();
 
   await expect(page.getByRole('heading', { name: 'Wallet snapshot' })).toBeVisible();
   await page.getByRole('radio', { name: /Yield/ }).click();

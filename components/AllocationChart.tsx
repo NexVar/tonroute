@@ -27,21 +27,22 @@ export function AllocationChart({
   const safeTotal = computedTotal > 0 ? computedTotal : 1;
 
   if (variant === 'donut') {
-    let acc = 0;
-    const stops = points
-      .map((point, index) => {
+    const { stops } = points.reduce(
+      (result, point, index) => {
         const value = Math.max(point.ton, 0);
         const pct = (value / safeTotal) * 100;
-        if (pct <= 0) return null;
+        if (pct <= 0) return result;
         const color = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
-        const start = acc;
-        acc += pct;
-        return `${color} ${start}% ${acc}%`;
-      })
-      .filter(Boolean)
-      .join(', ');
+        const start = result.offset;
+        const end = start + pct;
+        result.stops.push(`${color} ${start}% ${end}%`);
+        result.offset = end;
+        return result;
+      },
+      { stops: [] as string[], offset: 0 },
+    );
 
-    const donutStops = stops || `rgba(242, 235, 215, 0.08) 0% 100%`;
+    const donutStops = stops.join(', ') || `rgba(242, 235, 215, 0.08) 0% 100%`;
 
     return (
       <figure className="donut">
