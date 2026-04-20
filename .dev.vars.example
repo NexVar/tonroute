@@ -1,0 +1,13 @@
+NETWORK=testnet
+NEXT_PUBLIC_APP_URL=http://127.0.0.1:8787
+NEXT_PUBLIC_ENABLE_DEMO_WALLET=true
+ENABLE_DEMO_WALLET=true
+TONCENTER_API_KEY=replace-me
+TONAPI_KEY=replace-me
+TELEGRAM_BOT_TOKEN=replace-me
+TELEGRAM_WEBHOOK_SECRET=replace-me-with-random-secret
+WALLET_VERSION=v5r1
+TON_WALLET_ADDRESS=replace-me-only-if-demo-wallet-enabled
+MNEMONIC=replace-me-only-if-demo-wallet-enabled
+PRIVATE_KEY=replace-me-only-if-demo-wallet-enabled
+TON_WALLET_PUBLIC_KEY=replace-me-only-if-demo-wallet-enabled

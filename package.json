@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -17,7 +17,14 @@
     "test:e2e": "playwright test",
     "bot": "tsx scripts/run-bot.ts",
     "bot:smoke": "tsx scripts/bot-smoke.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "bot:webhook:set": "tsx scripts/telegram-webhook.ts register",
+    "bot:webhook:info": "tsx scripts/telegram-webhook.ts info",
+    "bot:webhook:delete": "tsx scripts/telegram-webhook.ts delete",
+    "bot:polling": "tsx scripts/run-bot.ts"
   },
   "dependencies": {
     "@ston-fi/sdk": "2.7.0",
@@ -45,6 +52,10 @@
     "jsdom": "29.0.2",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
-    "vitest": "4.1.4"
+    "vitest": "4.1.4",
+    "@opennextjs/cloudflare": "1.19.1",
+    "wrangler": "4.83.0",
+    "node-addon-api": "8.5.0",
+    "node-gyp": "11.2.0"
   }
 }

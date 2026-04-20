@@ -3,7 +3,7 @@ import { Providers } from './providers';
 import './globals.css';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-const manifestUrl = `${appUrl.replace(/\/$/, '')}/tonconnect-manifest.json`;
+const manifestUrl = `${appUrl.replace(/\/$/, '')}/api/tonconnect-manifest`;
 
 export const metadata: Metadata = {
   title: 'TonRoute — put idle TON to work',

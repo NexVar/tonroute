@@ -1,15 +1,11 @@
 import 'dotenv/config';
-import { createTelegramBot } from '@/lib/telegram/bot';
+import { createTelegramBot, telegramBotCommands } from '@/lib/telegram/bot';
 
 const bot = createTelegramBot();
 
 async function main() {
-  await bot.telegram.setMyCommands([
-    { command: 'start', description: 'Open TonRoute' },
-    { command: 'help', description: 'Show TonRoute bot help' },
-    { command: 'route', description: 'Analyze a TON wallet and recommend a route' },
-  ]);
-
+  await bot.telegram.deleteWebhook({ drop_pending_updates: false });
+  await bot.telegram.setMyCommands([...telegramBotCommands]);
   await bot.launch();
   console.log('TonRoute bot started with long polling.');
 }

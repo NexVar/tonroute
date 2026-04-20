@@ -38,3 +38,9 @@ out/
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Cloudflare / OpenNext
+.open-next/
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts

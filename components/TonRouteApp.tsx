@@ -38,6 +38,12 @@ function toRequestError(error: unknown): RequestError {
   return { message: 'Unknown error' };
 }
 
+const DEMO_WALLET_ENABLED = (() => {
+  const raw = process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET;
+  if (raw == null) return process.env.NODE_ENV !== 'production';
+  return ['1', 'true', 'yes', 'on'].includes(raw.toLowerCase());
+})();
+
 export function TonRouteApp() {
   const restored = useIsConnectionRestored();
   const tonConnectAddress = useTonAddress();
@@ -289,7 +295,12 @@ export function TonRouteApp() {
 
         {initialising && <SkeletonPanel label="Restoring wallet session" rows={2} />}
 
-        {showWalletGate && <WalletGate onUseDemoWallet={handleUseDemoWallet} demoLoading={demoWalletLoading} />}
+        {showWalletGate && (
+          <WalletGate
+            onUseDemoWallet={DEMO_WALLET_ENABLED ? handleUseDemoWallet : undefined}
+            demoLoading={demoWalletLoading}
+          />
+        )}
 
         {activeAddress && (
           <>
