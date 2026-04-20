@@ -30,3 +30,11 @@ pnpm-debug.log*
 # Project-local TON MCP wallet state
 .codex/ton/*
 !.codex/ton/.gitkeep
+
+# Next.js output
+.next/
+out/
+
+# Playwright artifacts
+playwright-report/
+test-results/
